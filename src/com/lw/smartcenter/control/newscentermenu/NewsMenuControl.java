@@ -7,7 +7,9 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
@@ -28,7 +30,9 @@ public class NewsMenuControl extends BaseMenuControl implements
 
 	@ViewInject(R.id.newsmenu_indicator)
 	private TabPageIndicator mNewsMenu_Indicator;
-
+	
+	@ViewInject(R.id.newsmenu_arr_iv)
+	private ImageView newsmenu_arr_iv;
 	private NewsMenuBean mNewsMenuBean;
 	private List<NewsBean> newsDatas;
 
@@ -96,6 +100,15 @@ public class NewsMenuControl extends BaseMenuControl implements
 		mNewsMenu_Indicator.setOnPageChangeListener(this);
 		/*System.out.println("newsDatas.size = " + newsDatas.size()+",   mNewsMenu_Vp = "+mNewsMenu_Vp
 			+",   mNewsMenu_Indicator = "	+mNewsMenu_Indicator);*/
+		
+		newsmenu_arr_iv.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+			  int itemid = mNewsMenu_Vp.getCurrentItem();
+			  mNewsMenu_Vp.setCurrentItem(++itemid);
+			}
+		});
 	}
 
 	@Override

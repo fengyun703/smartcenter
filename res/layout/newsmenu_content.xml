@@ -3,17 +3,30 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-    
-   <com.lw.smartcenter.view.NoInterceptIndicator
-        android:id="@+id/newsmenu_indicator"
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-        />
+        android:orientation="horizontal" >
+
+        <com.lw.smartcenter.view.NoInterceptIndicator
+            android:id="@+id/newsmenu_indicator"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/newsmenu_arr_iv"
+            android:layout_width="30dp"
+            android:layout_gravity="center_vertical"
+            android:layout_height="wrap_content"
+            android:src="@drawable/news_cate_arr" />
+    </LinearLayout>
+
     <android.support.v4.view.ViewPager
         android:id="@+id/newsmenu_vp"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        />
+        android:layout_weight="1" />
 
 </LinearLayout>
