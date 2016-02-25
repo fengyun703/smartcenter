@@ -8,7 +8,7 @@ public class NewsCenterBean {
 	public int retcode;
 
 	public class NewsMenuBean {
-		public List<NewsBean> children;
+		public List<NewsChild> children;
 		public int id;
 		public String title;
 		public int type;
@@ -21,7 +21,7 @@ public class NewsCenterBean {
 		public String weekurl;
 	}
 
-	public class NewsBean {
+	public class NewsChild {
 		public int id;
 		public String title;
 		public int type;

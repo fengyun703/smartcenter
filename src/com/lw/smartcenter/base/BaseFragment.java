@@ -1,7 +1,5 @@
 package com.lw.smartcenter.base;
 
-import com.lw.smartcenter.R;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

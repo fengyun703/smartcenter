@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -24,9 +25,11 @@ import com.lw.smartcenter.control.newscentermenu.PicMenuControl;
 import com.lw.smartcenter.control.newscentermenu.TopicMenuControl;
 import com.lw.smartcenter.frament.MenuFragment;
 import com.lw.smartcenter.ui.MainUI;
+import com.lw.smartcenter.utils.SharePrefereceUtils;
 
 public class NewsCenterTabControl extends BaseTabControl {
 
+	private static final long MAXDATESPAN = 2*60*1000;
 	private NewsCenterBean mNewsCenterBean;
 	private List<BaseMenuControl> mMenuControls;
 	private List<NewsMenuBean> mNewsCenterDatas;
@@ -46,19 +49,33 @@ public class NewsCenterTabControl extends BaseTabControl {
 	public void initData() {
 		mIb_menu.setVisibility(View.VISIBLE);
 		//mTv_title.setText("新闻");
-
+		final String url = Constants.NEWSCENTER_URI;
 		mMenuControls = new ArrayList<BaseMenuControl>();
 
+		//使用缓存保存json数据
+		String json = SharePrefereceUtils.getString(mContext, url);
+		long datetime= SharePrefereceUtils.getLong(mContext, url+"_date");
+		if(!TextUtils.isEmpty(json)){
+			processData(json);
+			if(System.currentTimeMillis() -datetime < MAXDATESPAN){
+				System.out.println("NewsCenterTabControl  不用网络加载");
+				return;
+			}
+		}
+		
 		HttpUtils http = new HttpUtils();
-		String url = Constants.NEWSCENTER_URI;
+		
 		http.send(HttpRequest.HttpMethod.GET, url,
 				new RequestCallBack<String>() {
 
 					@Override
 					public void onSuccess(ResponseInfo<String> responseInfo) {
-						System.out.println("数据接收成功");
+						System.out.println("NewsCenterTabControl  数据接收成功");
 						String result = responseInfo.result;
 						processData(result);
+						System.out.println( "NewsCenterTabControl 保存数据到缓存");
+						SharePrefereceUtils.setString(mContext, url, result);
+						SharePrefereceUtils.setLong(mContext, url+"_date", System.currentTimeMillis());
 						// System.out.println(result);
 					}
 
@@ -81,13 +98,14 @@ public class NewsCenterTabControl extends BaseTabControl {
 		MenuFragment fragment = ui.getMenuFragment();
 		fragment.setDatas(mNewsCenterBean.data);
 
-		// System.out.println(bean.data.get(2).title);
+		//System.out.println(mNewsCenterBean.data.get(0).children.get(1).title);
 		//加载MenuControl数据
 		NewsMenuBean bean;
 		for (int i = 0; i < mNewsCenterDatas.size(); i++) {
 			bean = mNewsCenterDatas.get(i);
 			switch (bean.type) {
 			case 1:
+				//System.out.println(bean.title);
 				NewsMenuControl newMenuControl = new NewsMenuControl(mContext,
 						bean);
 				mMenuControls.add(newMenuControl);

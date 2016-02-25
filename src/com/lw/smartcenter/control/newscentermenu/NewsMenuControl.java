@@ -17,8 +17,9 @@ import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lw.smartcenter.R;
 import com.lw.smartcenter.base.BaseMenuControl;
-import com.lw.smartcenter.bean.NewsCenterBean.NewsBean;
+import com.lw.smartcenter.bean.NewsCenterBean.NewsChild;
 import com.lw.smartcenter.bean.NewsCenterBean.NewsMenuBean;
+import com.lw.smartcenter.control.newsmenulist.NewsMenuListControl;
 import com.lw.smartcenter.ui.MainUI;
 import com.viewpagerindicator.TabPageIndicator;
 
@@ -34,12 +35,14 @@ public class NewsMenuControl extends BaseMenuControl implements
 	@ViewInject(R.id.newsmenu_arr_iv)
 	private ImageView newsmenu_arr_iv;
 	private NewsMenuBean mNewsMenuBean;
-	private List<NewsBean> newsDatas;
+	private List<NewsChild> newsDatas;
+	
 
 	public NewsMenuControl(Context context, NewsMenuBean bean) {
 		super(context);
 		mNewsMenuBean = bean;
 		newsDatas = mNewsMenuBean.children;
+	//	System.out.println("mNewsMenuBean  "+ mNewsMenuBean+", newsDatas=  "+newsDatas);
 	}
 
 	@Override
@@ -67,22 +70,26 @@ public class NewsMenuControl extends BaseMenuControl implements
 		@Override
 		public Object instantiateItem(ViewGroup container, int position) {
 		
-			TextView tv = new TextView(mContext);
-			NewsBean bean = newsDatas.get(position);
-			tv.setText(bean.title);
-			container.addView(tv);
-			return tv;
+			NewsChild bean = newsDatas.get(position);
+			//System.out.println("NewsChild" + bean);
+			NewsMenuListControl control = new NewsMenuListControl(mContext, bean);
+			View view = control.getmRootView();
+			control.initData();
+			container.addView(view);
+			return view;
 		}
+
 
 		@Override
 		public void destroyItem(ViewGroup container, int position, Object object) {
+			
 			container.removeView((View) object);
 		}
 
 		@Override
 		public CharSequence getPageTitle(int position) {
 			if (newsDatas != null) {
-				NewsBean bean = newsDatas.get(position);
+				NewsChild bean = newsDatas.get(position);
 				return bean.title;
 			}
 			return super.getPageTitle(position);
