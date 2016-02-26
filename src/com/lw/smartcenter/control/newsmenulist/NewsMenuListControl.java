@@ -94,11 +94,11 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		if (!TextUtils.isEmpty(json)) {
 			processData(json);
 			if (System.currentTimeMillis() - datetime < MAXDATESPAN) {
-				System.out.println("NewsMenuListControl 不用网络加载");
+				Log.d(TAG, "不用网络加载");
 				return;
 			}
 		}
-		getDataFromWeb();
+		getDataFromWeb(false);
 
 	}
 
@@ -126,27 +126,34 @@ public class NewsMenuListControl extends BaseMenuControl implements
 
 	}
 
-	// 从网络获取数据
-	private void getDataFromWeb() {
+	/**
+	 *  从网络获取数据
+	 * @param isRefresh  为true，标示是下拉更新数据；false,是普通加载数据
+	 */
+	private void getDataFromWeb(final boolean isRefresh) {
 		HttpUtils http = new HttpUtils();
 		final String url = Constants.BASEURI + mBean.url;
 		http.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 
 			@Override
 			public void onSuccess(ResponseInfo<String> responseInfo) {
-				System.out.println("listcontrol  网络访问正常");
+				Log.d(TAG, " 网络访问正常");
 				String json = responseInfo.result;
 				processData(json);
 				// 存储到缓存
-				System.out.println("listcontrol  存储到缓存");
+				Log.d(TAG, " 存储到缓存");
 				SharePrefereceUtils.setString(mContext, url, json);
 				SharePrefereceUtils.setLong(mContext, url + "_date",
 						System.currentTimeMillis());
+				//更新完数据，设置ui界面
+				if(isRefresh){
+					news_menu_listview.setRefreshEnd();
+				}
 			}
 
 			@Override
 			public void onFailure(HttpException error, String msg) {
-				System.out.println("listcontrol  网络访问bu正常");
+				Log.d(TAG, "  网络访问bu正常");
 			}
 		});
 
@@ -348,9 +355,8 @@ public class NewsMenuListControl extends BaseMenuControl implements
 	@Override
 	public void onRefresh() {
 		Log.d(TAG, "正在更新数据");
+		getDataFromWeb(true);
 		
-		//数据更新完成后，回复界面
-		news_menu_listview.setRefreshEnd();
 	}
 
 	//加载更多

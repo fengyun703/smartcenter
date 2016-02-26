@@ -1,7 +1,10 @@
 package com.lw.smartcenter.view;
 
-import android.animation.Animator.AnimatorListener;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
@@ -11,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -20,7 +25,7 @@ import android.widget.TextView;
 
 import com.lw.smartcenter.R;
 
-public class RefreshListView extends ListView {
+public class RefreshListView extends ListView implements OnScrollListener   {
 
 	private static final int STATUS_DOWN_REFRESH = 0;
 	private static final int STATUS_REFRESHING = 1;
@@ -65,6 +70,7 @@ public class RefreshListView extends ListView {
 		initialHeader();
 		initialFooter();
 		initialData();
+		setOnScrollListener(this);
 	}
 
 	private void initialData() {
@@ -138,6 +144,10 @@ public class RefreshListView extends ListView {
 			int dy = movey - downy;
 			// Log.d(TAG, " downy =    "+downy +", dy =  "+ dy);
 			if (dy > 0) {
+				
+				if(mCurrentStatus == STATUS_REFRESHING){
+					break;
+				}
 
 				// 下拉操作。
 				if (mCustomLayout != null) {
@@ -150,7 +160,7 @@ public class RefreshListView extends ListView {
 						// 当mCustomLayout不在屏幕顶端，不响应下拉刷新
 						// Log.d(TAG,
 						// customLocInW[1]);
-						return super.onTouchEvent(ev);
+						break;
 					}
 				}
 
@@ -252,7 +262,8 @@ public class RefreshListView extends ListView {
 		void onRefresh();
 		void  onLoadMore();
 	}
-
+	
+	//利用属性动画实现refresh view的平滑移动
 	private void smoothMove(int start, int end, AnimatorListener listener) {
 		ValueAnimator animator = ValueAnimator.ofInt(start, end);
 		animator.setDuration(300);
@@ -271,6 +282,8 @@ public class RefreshListView extends ListView {
 
 	//更新状态后刷新Refresh界面
 	private void setRefreshUi() {
+		
+		header_refresh_time_tv.setText(getDateTime());
 		switch (mCurrentStatus) {
 		case STATUS_DOWN_REFRESH:
 			// 下拉刷新界面
@@ -303,6 +316,11 @@ public class RefreshListView extends ListView {
 		}
 	}
 	
+	private String getDateTime() {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd  hh:mm:ss");
+		return format.format(new Date());
+	}
+
 	public void setRefreshListener( RefreshListener listener){
 		mRefreshListener = listener;
 	}
@@ -311,7 +329,21 @@ public class RefreshListView extends ListView {
 	public void setRefreshEnd(){
 		mIsShowRefresh = false;
 		int end = -mHeaderHeight;
+		mCurrentStatus = STATUS_DOWN_REFRESH;
+		setRefreshUi();
 		smoothMove(mHeaderCurrentPadding, end, null);
+	}
+
+	
+	@Override
+	public void onScrollStateChanged(AbsListView view, int scrollState) {
+		
+	}
+
+	@Override
+	public void onScroll(AbsListView view, int firstVisibleItem,
+			int visibleItemCount, int totalItemCount) {
+		
 	}
 
 }
