@@ -3,10 +3,14 @@ package com.lw.smartcenter.control.newsmenulist;
 import java.util.List;
 
 import android.content.Context;
+import android.os.Handler;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
@@ -31,12 +35,14 @@ import com.lw.smartcenter.bean.NewsMenuListBean.TopnewsBean;
 import com.lw.smartcenter.constants.Constants;
 import com.lw.smartcenter.utils.SharePrefereceUtils;
 import com.lw.smartcenter.view.RefreshListView;
+import com.lw.smartcenter.view.RefreshListView.RefreshListener;
 import com.lw.smartcenter.view.TopicNewsViewPager;
 
 public class NewsMenuListControl extends BaseMenuControl implements
-		OnPageChangeListener {
+		OnPageChangeListener, OnTouchListener, RefreshListener {
 
-	private static final long MAXDATESPAN = 2*1000*60;
+	private static final long MAXDATESPAN = 2 * 1000 * 60;
+	private static final String TAG = "NewsMenuListControl";
 	private RefreshListView news_menu_listview;
 	private NewsChild mBean;
 	private NewsMenuListBean mNewsMenuListBean;
@@ -49,6 +55,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 	private BitmapUtils mBitmapUtils;
 	private TopVPAdapter mViewPagerAdapter;
 	private RefreshAdapter mListViewAdapter;
+	private AutoTask mAotuTask;
 
 	public NewsMenuListControl(Context context, NewsChild bean) {
 		super(context);
@@ -61,9 +68,9 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		news_menu_listview = (RefreshListView) view
 				.findViewById(R.id.news_menu_listview);
 		mTopicView = View.inflate(mContext, R.layout.header_topic_news, null);
-		//把自定义view加入header
+		// 把自定义view加入header
 		news_menu_listview.addCustomHeadView(mTopicView);
-		
+
 		topic_vp = (TopicNewsViewPager) mTopicView.findViewById(R.id.topic_vp);
 		topic_title_tv = (TextView) mTopicView
 				.findViewById(R.id.topic_title_tv);
@@ -71,7 +78,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 				.findViewById(R.id.topic_dots_container);
 
 		topic_vp.setOnPageChangeListener(this);
-
+		news_menu_listview.setRefreshListener(this);
 		return view;
 	}
 
@@ -92,6 +99,31 @@ public class NewsMenuListControl extends BaseMenuControl implements
 			}
 		}
 		getDataFromWeb();
+
+	}
+
+	class AutoTask extends Handler implements Runnable {
+
+		public void start() {
+			stop();
+			postDelayed(this, 2000);
+		}
+
+		public void stop() {
+			removeCallbacks(this);
+		}
+
+		@Override
+		public void run() {
+			int id = topic_vp.getCurrentItem();
+			if (id == topic_vp.getAdapter().getCount() - 1) {
+				topic_vp.setCurrentItem(0);
+			} else {
+				topic_vp.setCurrentItem(++id);
+			}
+			postDelayed(this,2000);
+		}
+
 	}
 
 	// 从网络获取数据
@@ -126,9 +158,11 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		// System.out.println(mNewsMenuListBean.data.title);
 		mNewsBean = mNewsMenuListBean.data.news;
 		mTopnews = mNewsMenuListBean.data.topnews;
-		//System.out.println(mTopnews.get(0).title+"  , "+ mTopnews.get(0).topimage);
-		//System.out.println(mNewsBean.get(0).title+"  , "+ mNewsBean.get(0).listimage);
-		//System.out.println("mTopnews.size() ="+mTopnews.size());
+		// System.out.println(mTopnews.get(0).title+"  , "+
+		// mTopnews.get(0).topimage);
+		// System.out.println(mNewsBean.get(0).title+"  , "+
+		// mNewsBean.get(0).listimage);
+		// System.out.println("mTopnews.size() ="+mTopnews.size());
 		/*
 		 * System.out.println("mNewsMenuListBean = " + mNewsMenuListBean +
 		 * ",   mNewsBean =   " + mNewsBean + ", mTopnews= " + mTopnews);
@@ -148,7 +182,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 				params.leftMargin = 10;
 				dot.setBackgroundResource(R.drawable.guide_dot_nomal);
 			}
-			//System.out.println("加入点");
+			// System.out.println("加入点");
 			topic_dots_container.addView(dot, params);
 		}
 
@@ -161,6 +195,14 @@ public class NewsMenuListControl extends BaseMenuControl implements
 			mListViewAdapter = new RefreshAdapter();
 		}
 		news_menu_listview.setAdapter(mListViewAdapter);
+
+		// 开启轮播
+		if (mAotuTask == null) {
+			mAotuTask = new AutoTask();
+		}
+		mAotuTask.start();
+		// 控制轮播关闭
+		topic_vp.setOnTouchListener(this);
 	}
 
 	class RefreshAdapter extends BaseAdapter {
@@ -268,17 +310,53 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		}
 		view = topic_dots_container.getChildAt(position);
 		view.setBackgroundResource(R.drawable.guide_dot_focus);
-		
-		//更新topic 的标题
+
+		// 更新topic 的标题
 		TopnewsBean bean = mTopnews.get(position);
 		topic_title_tv.setText(bean.title);
 
-		
 	}
 
 	@Override
 	public void onPageScrollStateChanged(int state) {
 
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		// 控制轮播
+		int action = event.getAction();
+		switch (action) {
+		case MotionEvent.ACTION_DOWN:
+			//有触摸就停止轮播
+			mAotuTask.stop();
+			break;
+
+		case MotionEvent.ACTION_UP:
+		case MotionEvent.ACTION_CANCEL:
+			//触摸完成就开启轮播
+			mAotuTask.start();
+			break;
+
+		default:
+			break;
+		}
+		return false;
+	}
+
+	//更新数据
+	@Override
+	public void onRefresh() {
+		Log.d(TAG, "正在更新数据");
+		
+		//数据更新完成后，回复界面
+		news_menu_listview.setRefreshEnd();
+	}
+
+	//加载更多
+	@Override
+	public void onLoadMore() {
+		Log.d(TAG, "正在加载数据");
 	}
 
 }

@@ -51,7 +51,7 @@ public class NewsCenterTabControl extends BaseTabControl {
 		//mTv_title.setText("新闻");
 		final String url = Constants.NEWSCENTER_URI;
 		mMenuControls = new ArrayList<BaseMenuControl>();
-
+		//System.out.println(url);
 		//使用缓存保存json数据
 		String json = SharePrefereceUtils.getString(mContext, url);
 		long datetime= SharePrefereceUtils.getLong(mContext, url+"_date");

@@ -10,6 +10,7 @@ import com.jeremyfeinstein.slidingmenu.lib.app.SlidingFragmentActivity;
 import com.lw.smartcenter.R;
 import com.lw.smartcenter.frament.ContentFragment;
 import com.lw.smartcenter.frament.MenuFragment;
+import com.lw.smartcenter.utils.DpAndPx;
 
 public class MainUI extends SlidingFragmentActivity {
 
@@ -30,7 +31,7 @@ public class MainUI extends SlidingFragmentActivity {
 		// 设置左边有菜单
 		slidingMenu.setMode(SlidingMenu.LEFT);
 		// 设置菜单宽
-		slidingMenu.setBehindWidth(120);
+		slidingMenu.setBehindWidth(DpAndPx.dip2px(this, 120));
 
 		slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
 
