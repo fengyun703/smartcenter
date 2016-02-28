@@ -3,10 +3,12 @@ package com.lw.smartcenter.view;
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 
 public class TopicNewsViewPager extends ViewPager {
 
+	private static final String TAG = "TopicNewsViewPager";
 	private int downx;
 	private int downy;
 
@@ -25,6 +27,7 @@ public class TopicNewsViewPager extends ViewPager {
 		int itemCount = this.getAdapter().getCount();
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
+			//Log.d(TAG, "down");
 			downx = (int) ev.getRawX();
 			downy = (int) ev.getRawY();
 			getParent().requestDisallowInterceptTouchEvent(true);
@@ -35,6 +38,7 @@ public class TopicNewsViewPager extends ViewPager {
 			int vectorX = movex - downx;
 			int dx = Math.abs(vectorX);
 			float dy = Math.abs(downy - movey);
+			//Log.d(TAG, "移动");
 			if (dx > dy) {
 				// 水平移动
 				if (currentId == 0) {
@@ -73,7 +77,9 @@ public class TopicNewsViewPager extends ViewPager {
 
 			break;
 		case MotionEvent.ACTION_UP:
-
+		case MotionEvent.ACTION_CANCEL:
+			getParent().requestDisallowInterceptTouchEvent(false);
+			//Log.d(TAG, "ACTION_CANCEL");
 			break;
 
 		default:

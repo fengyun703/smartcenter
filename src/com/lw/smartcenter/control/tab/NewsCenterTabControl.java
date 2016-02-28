@@ -2,11 +2,18 @@ package com.lw.smartcenter.control.tab;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.lidroid.xutils.HttpUtils;
@@ -64,7 +71,6 @@ public class NewsCenterTabControl extends BaseTabControl {
 		}
 		
 		HttpUtils http = new HttpUtils();
-		
 		http.send(HttpRequest.HttpMethod.GET, url,
 				new RequestCallBack<String>() {
 
@@ -82,8 +88,7 @@ public class NewsCenterTabControl extends BaseTabControl {
 					@Override
 					public void onFailure(HttpException error, String msg) {
 						System.out.println("onFailur : " + msg);
-						// Toast.makeText(mContext,
-						// msg,Toast.LENGTH_SHORT).show();
+						Toast.makeText(mContext,"Õ¯¬Á∑√Œ  ß∞‹£∫"+msg,Toast.LENGTH_SHORT).show();
 					}
 				});
 

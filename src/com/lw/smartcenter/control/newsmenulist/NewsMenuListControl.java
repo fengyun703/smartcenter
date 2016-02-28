@@ -12,8 +12,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.Toast;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -39,7 +42,7 @@ import com.lw.smartcenter.view.RefreshListView.RefreshListener;
 import com.lw.smartcenter.view.TopicNewsViewPager;
 
 public class NewsMenuListControl extends BaseMenuControl implements
-		OnPageChangeListener, OnTouchListener, RefreshListener {
+		OnPageChangeListener, OnTouchListener, RefreshListener, OnItemClickListener {
 
 	private static final long MAXDATESPAN = 2 * 1000 * 60;
 	private static final String TAG = "NewsMenuListControl";
@@ -56,6 +59,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 	private TopVPAdapter mViewPagerAdapter;
 	private RefreshAdapter mListViewAdapter;
 	private AutoTask mAotuTask;
+	private String mMoreUrl;
 
 	public NewsMenuListControl(Context context, NewsChild bean) {
 		super(context);
@@ -79,6 +83,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 
 		topic_vp.setOnPageChangeListener(this);
 		news_menu_listview.setRefreshListener(this);
+		news_menu_listview.setOnItemClickListener(this);
 		return view;
 	}
 
@@ -98,7 +103,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 				return;
 			}
 		}
-		getDataFromWeb(false);
+		getDataFromWeb(false, Constants.BASEURI + mBean.url);
 
 	}
 
@@ -121,18 +126,19 @@ public class NewsMenuListControl extends BaseMenuControl implements
 			} else {
 				topic_vp.setCurrentItem(++id);
 			}
-			postDelayed(this,2000);
+			postDelayed(this, 2000);
 		}
 
 	}
 
 	/**
-	 *  从网络获取数据
-	 * @param isRefresh  为true，标示是下拉更新数据；false,是普通加载数据
+	 * 从网络获取数据
+	 * 
+	 * @param isRefresh
+	 *            为true，标示是下拉更新数据；false,是普通加载数据
 	 */
-	private void getDataFromWeb(final boolean isRefresh) {
+	private void getDataFromWeb(final boolean isRefresh, final String url) {
 		HttpUtils http = new HttpUtils();
-		final String url = Constants.BASEURI + mBean.url;
 		http.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 
 			@Override
@@ -145,8 +151,8 @@ public class NewsMenuListControl extends BaseMenuControl implements
 				SharePrefereceUtils.setString(mContext, url, json);
 				SharePrefereceUtils.setLong(mContext, url + "_date",
 						System.currentTimeMillis());
-				//更新完数据，设置ui界面
-				if(isRefresh){
+				// 更新完数据，设置ui界面
+				if (isRefresh) {
 					news_menu_listview.setRefreshEnd();
 				}
 			}
@@ -154,6 +160,8 @@ public class NewsMenuListControl extends BaseMenuControl implements
 			@Override
 			public void onFailure(HttpException error, String msg) {
 				Log.d(TAG, "  网络访问bu正常");
+				Toast.makeText(mContext, "网络访问失败：" + msg, Toast.LENGTH_SHORT)
+						.show();
 			}
 		});
 
@@ -165,6 +173,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		// System.out.println(mNewsMenuListBean.data.title);
 		mNewsBean = mNewsMenuListBean.data.news;
 		mTopnews = mNewsMenuListBean.data.topnews;
+		mMoreUrl = mNewsMenuListBean.data.more;
 		// System.out.println(mTopnews.get(0).title+"  , "+
 		// mTopnews.get(0).topimage);
 		// System.out.println(mNewsBean.get(0).title+"  , "+
@@ -217,6 +226,7 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		@Override
 		public int getCount() {
 			if (mNewsBean != null) {
+				//Log.d(TAG, "count = "+ mNewsBean.size());
 				return mNewsBean.size();
 			}
 			return 0;
@@ -335,13 +345,13 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		int action = event.getAction();
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
-			//有触摸就停止轮播
+			// 有触摸就停止轮播
 			mAotuTask.stop();
 			break;
 
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_CANCEL:
-			//触摸完成就开启轮播
+			// 触摸完成就开启轮播
 			mAotuTask.start();
 			break;
 
@@ -351,18 +361,70 @@ public class NewsMenuListControl extends BaseMenuControl implements
 		return false;
 	}
 
-	//更新数据
+	// 更新数据
 	@Override
 	public void onRefresh() {
 		Log.d(TAG, "正在更新数据");
-		getDataFromWeb(true);
-		
+		getDataFromWeb(true, Constants.BASEURI + mBean.url);
+
 	}
 
-	//加载更多
+	// 加载更多
 	@Override
 	public void onLoadMore() {
-		Log.d(TAG, "正在加载数据");
+		if (!TextUtils.isEmpty(mMoreUrl)) {
+			Log.d(TAG, "正在加载更多数据");
+			String moreurl = Constants.BASEURI + mMoreUrl;
+			getMoreDataFromWeb(moreurl);
+		}else{
+			Log.d(TAG, "没有更多数据加载");
+			news_menu_listview.setLoadMoreEnd();
+		}
+	}
+
+	private void getMoreDataFromWeb(String moreurl) {
+		//使用缓存
+		String json = SharePrefereceUtils.getString(mContext, moreurl);
+		long datetime = SharePrefereceUtils.getLong(mContext, moreurl + "_date");
+		if (!TextUtils.isEmpty(json)) {
+			loadMoreProcessData(json);
+			if (System.currentTimeMillis() - datetime < MAXDATESPAN) {
+				Log.d(TAG, "不用网络加载");
+				return;
+			}
+		}
+		
+		HttpUtils http = new HttpUtils();
+		http.send(HttpMethod.GET, moreurl, new RequestCallBack<String>() {
+
+			@Override
+			public void onSuccess(ResponseInfo<String> responseInfo) {
+				String json = responseInfo.result;
+				loadMoreProcessData(json);
+			}
+			@Override
+			public void onFailure(HttpException error, String msg) {
+				Toast.makeText(mContext, "loadmore 失败:"+msg, 0).show();
+				news_menu_listview.setLoadMoreEnd();
+			}
+		});
+	}
+
+	//处理加载更多的数据
+	private void loadMoreProcessData(String json){
+		Gson gson = new Gson();
+		NewsMenuListBean  bean = 	gson.fromJson(json, NewsMenuListBean.class);
+		mNewsBean.addAll(bean.data.news);
+		//更新加载更多url
+		mMoreUrl = bean.data.more;
+		mListViewAdapter.notifyDataSetChanged();
+		news_menu_listview.setLoadMoreEnd();
+	}
+	
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		Log.d(TAG, "position = " + position+",   item = " + parent.getAdapter().getItem(position));
 	}
 
 }
