@@ -11,6 +11,7 @@ public class TopicNewsViewPager extends ViewPager {
 	private static final String TAG = "TopicNewsViewPager";
 	private int downx;
 	private int downy;
+	
 
 	public TopicNewsViewPager(Context context) {
 		super(context);
@@ -27,7 +28,7 @@ public class TopicNewsViewPager extends ViewPager {
 		int itemCount = this.getAdapter().getCount();
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
-			//Log.d(TAG, "down");
+			//Log.d(TAG, "dispatchTouchEvent  down");
 			downx = (int) ev.getRawX();
 			downy = (int) ev.getRawY();
 			getParent().requestDisallowInterceptTouchEvent(true);
@@ -79,7 +80,6 @@ public class TopicNewsViewPager extends ViewPager {
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_CANCEL:
 			getParent().requestDisallowInterceptTouchEvent(false);
-			//Log.d(TAG, "ACTION_CANCEL");
 			break;
 
 		default:
@@ -88,5 +88,23 @@ public class TopicNewsViewPager extends ViewPager {
 
 		return super.dispatchTouchEvent(ev);
 	}
+	
+	/*@Override
+	public boolean onTouchEvent(MotionEvent ev) {
+		int action = ev.getAction();
+		switch (action) {
+		case MotionEvent.ACTION_DOWN:
+			Log.d(TAG, " onTouchEvent ACTION_DOWN");
+			break;
+
+		case MotionEvent.ACTION_UP:
+			Log.d(TAG, " onTouchEvent ACTION_UP");
+			break;
+		default:
+			break;
+		}
+		
+		return super.onTouchEvent(ev);
+	}*/
 
 }

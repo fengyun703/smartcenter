@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:background="@drawable/title_red_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:id="@+id/detail_back_iv"
+            android:layout_marginLeft="10dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/back" />
+
+         <ImageView
+             android:id="@+id/detail_shared_iv"
+            android:layout_centerVertical="true"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_alignParentRight="true"
+             android:layout_marginRight="10dp"
+             android:src="@drawable/icon_share" />
+        
+        <ImageView
+            android:id="@+id/detail_size_iv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@id/detail_shared_iv"
+            android:src="@drawable/icon_textsize" />
+         
+    </RelativeLayout>
+    <WebView 
+         android:id="@+id/detail_content_wv"
+          android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+</LinearLayout>

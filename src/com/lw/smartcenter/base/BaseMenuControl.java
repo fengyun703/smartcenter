@@ -36,4 +36,8 @@ public abstract class BaseMenuControl {
 		
 	}
 	
+	public void onDestroy(){
+		
+	}
+	
 }

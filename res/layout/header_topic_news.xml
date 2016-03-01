@@ -5,7 +5,6 @@
 
     <com.lw.smartcenter.view.TopicNewsViewPager
         android:id="@+id/topic_vp"
-        android:clickable="false"
         android:layout_width="match_parent"
         android:layout_height="150dp" />
 

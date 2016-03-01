@@ -26,14 +26,13 @@
             </intent-filter>
         </activity>
           <activity
-            android:name=".ui.GuideUI"
-            android:label="@string/app_name">
+            android:name=".ui.GuideUI">
         </activity>
          <activity
             android:name=".ui.MainUI"
-            android:theme="@style/StyledIndicators"
-            android:label="@string/app_name">
+            android:theme="@style/StyledIndicators">
         </activity>
+        <activity  android:name=".ui.NewsDetailUI"></activity>
     </application>
 
 </manifest>

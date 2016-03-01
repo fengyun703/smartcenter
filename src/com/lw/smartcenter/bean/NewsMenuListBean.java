@@ -26,6 +26,9 @@ public class NewsMenuListBean {
 		public String title;
 		public String news;
 		public String url;
+		public String largeimage;
+		public String smallimage;
+		public String type;
 	}
 
 	public class TopicBean {

@@ -94,6 +94,11 @@ public class SplashUI extends Activity {
 
 		finish();
 	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
 
 
 }

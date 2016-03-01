@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -36,7 +37,8 @@ import com.lw.smartcenter.utils.SharePrefereceUtils;
 
 public class NewsCenterTabControl extends BaseTabControl {
 
-	private static final long MAXDATESPAN = 2*60*1000;
+	private static final long MAXDATESPAN = 2 * 60 * 1000;
+	private static final String TAG = "NewsCenterTabControl";
 	private NewsCenterBean mNewsCenterBean;
 	private List<BaseMenuControl> mMenuControls;
 	private List<NewsMenuBean> mNewsCenterDatas;
@@ -55,22 +57,22 @@ public class NewsCenterTabControl extends BaseTabControl {
 	@Override
 	public void initData() {
 		mIb_menu.setVisibility(View.VISIBLE);
-		//mTv_title.setText("新闻");
+		// mTv_title.setText("新闻");
 		final String url = Constants.NEWSCENTER_URI;
 		mMenuControls = new ArrayList<BaseMenuControl>();
-		//System.out.println(url);
-		//使用缓存保存json数据
+		// System.out.println(url);
+		// 使用缓存保存json数据
 		String json = SharePrefereceUtils.getString(mContext, url);
-		long datetime= SharePrefereceUtils.getLong(mContext, url+"_date");
-		if(!TextUtils.isEmpty(json)){
+		long datetime = SharePrefereceUtils.getLong(mContext, url + "_date");
+		if (!TextUtils.isEmpty(json)) {
 			processData(json);
-			if(System.currentTimeMillis() -datetime < MAXDATESPAN){
+			if (System.currentTimeMillis() - datetime < MAXDATESPAN) {
 				System.out.println("NewsCenterTabControl  不用网络加载");
 				return;
 			}
 		}
-		
-		HttpUtils http = new HttpUtils();
+
+		HttpUtils http = new HttpUtils(10 * 1000);
 		http.send(HttpRequest.HttpMethod.GET, url,
 				new RequestCallBack<String>() {
 
@@ -79,16 +81,18 @@ public class NewsCenterTabControl extends BaseTabControl {
 						System.out.println("NewsCenterTabControl  数据接收成功");
 						String result = responseInfo.result;
 						processData(result);
-						System.out.println( "NewsCenterTabControl 保存数据到缓存");
+						System.out.println("NewsCenterTabControl 保存数据到缓存");
 						SharePrefereceUtils.setString(mContext, url, result);
-						SharePrefereceUtils.setLong(mContext, url+"_date", System.currentTimeMillis());
+						SharePrefereceUtils.setLong(mContext, url + "_date",
+								System.currentTimeMillis());
 						// System.out.println(result);
 					}
 
 					@Override
 					public void onFailure(HttpException error, String msg) {
 						System.out.println("onFailur : " + msg);
-						Toast.makeText(mContext,"网络访问失败："+msg,Toast.LENGTH_SHORT).show();
+						Toast.makeText(mContext, "网络访问失败：" + msg,
+								Toast.LENGTH_SHORT).show();
 					}
 				});
 
@@ -103,14 +107,14 @@ public class NewsCenterTabControl extends BaseTabControl {
 		MenuFragment fragment = ui.getMenuFragment();
 		fragment.setDatas(mNewsCenterBean.data);
 
-		//System.out.println(mNewsCenterBean.data.get(0).children.get(1).title);
-		//加载MenuControl数据
+		// System.out.println(mNewsCenterBean.data.get(0).children.get(1).title);
+		// 加载MenuControl数据
 		NewsMenuBean bean;
 		for (int i = 0; i < mNewsCenterDatas.size(); i++) {
 			bean = mNewsCenterDatas.get(i);
 			switch (bean.type) {
 			case 1:
-				//System.out.println(bean.title);
+				// System.out.println(bean.title);
 				NewsMenuControl newMenuControl = new NewsMenuControl(mContext,
 						bean);
 				mMenuControls.add(newMenuControl);
@@ -142,13 +146,38 @@ public class NewsCenterTabControl extends BaseTabControl {
 		mContent_Contain.removeAllViews();
 		NewsMenuBean newsMenuBean = mNewsCenterDatas.get(position);
 		BaseMenuControl control = mMenuControls.get(position);
-		//System.out.println(control+ "     "+ position+"   "+ mContent_Contain+"    "+control.getmRootView());
+		// System.out.println(control+ "     "+ position+"   "+
+		// mContent_Contain+"    "+control.getmRootView());
+	
+		
+		if (control instanceof PicMenuControl) {
+			mPic_list_or_grid.setVisibility(View.VISIBLE);
+			((PicMenuControl) control).setListOrGridSwich(mPic_list_or_grid);
+		} else {
+			mPic_list_or_grid.setVisibility(View.GONE);
+		}
 		// 设置正文View
 		mContent_Contain.addView(control.getmRootView());
-		//设置正文数据
+		// 设置正文数据
 		control.initData();
 		// 设置标题文本
 		mTv_title.setText(newsMenuBean.title);
+
+		
+	}
+	
+	@Override
+	public void onDestroy() {
+		
+		if(mMenuControls!= null){
+			Log.d(TAG, " NewsCenterTabControl   onDestroy ");
+			for(BaseMenuControl control:mMenuControls){
+				control.onDestroy();
+			}
+			mMenuControls.clear();
+			mMenuControls = null;
+		}
+	
 	}
 
 }

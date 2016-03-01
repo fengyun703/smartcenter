@@ -6,6 +6,7 @@ import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -26,6 +27,8 @@ import com.viewpagerindicator.TabPageIndicator;
 public class NewsMenuControl extends BaseMenuControl implements
 		OnPageChangeListener {
 
+	private static final String TAG = "NewsMenuControl";
+
 	@ViewInject(R.id.newsmenu_vp)
 	private ViewPager mNewsMenu_Vp;
 
@@ -36,7 +39,7 @@ public class NewsMenuControl extends BaseMenuControl implements
 	private ImageView newsmenu_arr_iv;
 	private NewsMenuBean mNewsMenuBean;
 	private List<NewsChild> newsDatas;
-	
+	private NewsMenuListControl mControl;
 
 	public NewsMenuControl(Context context, NewsMenuBean bean) {
 		super(context);
@@ -53,6 +56,8 @@ public class NewsMenuControl extends BaseMenuControl implements
 	}
 
 	class NewsMenuAdapter extends PagerAdapter {
+
+		
 
 		@Override
 		public int getCount() {
@@ -72,9 +77,9 @@ public class NewsMenuControl extends BaseMenuControl implements
 		
 			NewsChild bean = newsDatas.get(position);
 			//System.out.println("NewsChild" + bean);
-			NewsMenuListControl control = new NewsMenuListControl(mContext, bean);
-			View view = control.getmRootView();
-			control.initData();
+			mControl = new NewsMenuListControl(mContext, bean);
+			View view = mControl.getmRootView();
+			mControl.initData();
 			container.addView(view);
 			return view;
 		}
@@ -134,6 +139,15 @@ public class NewsMenuControl extends BaseMenuControl implements
 	@Override
 	public void onPageScrollStateChanged(int state) {
 
+	}
+	
+	@Override
+	public void onDestroy() {
+		if(mControl !=null){
+			Log.d(TAG, "NewsMenuControl onDestroy  mControl ");
+			mControl.onDestroy();
+		}
+		
 	}
 
 }

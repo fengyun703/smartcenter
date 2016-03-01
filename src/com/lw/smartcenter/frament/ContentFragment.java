@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
@@ -24,6 +25,8 @@ import com.lw.smartcenter.ui.MainUI;
 import com.lw.smartcenter.view.NoScrollViewPager;
 
 public class ContentFragment extends BaseFragment {
+
+	private static final String TAG = "ContentFragment ";
 
 	@ViewInject(R.id.content_rg)
 	private RadioGroup content_rg;
@@ -142,6 +145,20 @@ public class ContentFragment extends BaseFragment {
 	public void switchMenu(int position) {
 		BaseTabControl control = tabControls.get(mCurrentTab);
 		control.switchMenu(position);
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		if(tabControls!=null){
+			Log.d(TAG, "ContentFragment  onDestroy  '");
+			for(BaseTabControl control:tabControls){
+				control.onDestroy();
+			}
+			tabControls.clear();
+			tabControls = null;
+		}
+		
 	}
 
 }

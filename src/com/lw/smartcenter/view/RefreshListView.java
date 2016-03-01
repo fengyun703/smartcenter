@@ -53,6 +53,7 @@ public class RefreshListView extends ListView implements OnScrollListener {
 	private int downx;
 	private int downy;
 	private boolean mIsShowRefresh;
+	private boolean isLoadMore;
 	private RefreshListener mRefreshListener;
 
 	// private int mInvalidDy; //用来记录refreshView出现时，手指滑动的距离
@@ -76,6 +77,7 @@ public class RefreshListView extends ListView implements OnScrollListener {
 	private void initialData() {
 		mCurrentStatus = STATUS_DOWN_REFRESH;
 		mIsShowRefresh = false;
+		isLoadMore = false;
 	}
 
 	private void initialFooter() {
@@ -142,7 +144,7 @@ public class RefreshListView extends ListView implements OnScrollListener {
 			int movey = (int) ev.getY();
 			int dx = movex - downx;
 			int dy = movey - downy;
-			// Log.d(TAG, " downy =    "+downy +", dy =  "+ dy);
+			// Log.d(TAG, " downy =    "+downy +", movey =  "+ movey);
 			if (dy > 0) {
 
 				if (mCurrentStatus == STATUS_REFRESHING) {
@@ -222,34 +224,35 @@ public class RefreshListView extends ListView implements OnScrollListener {
 			if (mCurrentStatus == STATUS_RELEASE_REFRESH) {
 				// 释放刷新，需要更新数据
 				int end = 0;
-				smoothMove(false,mHeaderCurrentPadding, end, new AnimatorListener() {
+				smoothMove(false, mHeaderCurrentPadding, end,
+						new AnimatorListener() {
 
-					@Override
-					public void onAnimationStart(Animator animation) {
-					}
+							@Override
+							public void onAnimationStart(Animator animation) {
+							}
 
-					@Override
-					public void onAnimationRepeat(Animator animation) {
-					}
+							@Override
+							public void onAnimationRepeat(Animator animation) {
+							}
 
-					@Override
-					public void onAnimationEnd(Animator animation) {
-						mCurrentStatus = STATUS_REFRESHING;
-						setRefreshUi();
-						if (mRefreshListener != null) {
-							mRefreshListener.onRefresh();
-						}
-					}
+							@Override
+							public void onAnimationEnd(Animator animation) {
+								mCurrentStatus = STATUS_REFRESHING;
+								setRefreshUi();
+								if (mRefreshListener != null) {
+									mRefreshListener.onRefresh();
+								}
+							}
 
-					@Override
-					public void onAnimationCancel(Animator animation) {
-					}
-				});
+							@Override
+							public void onAnimationCancel(Animator animation) {
+							}
+						});
 
 			} else if (mCurrentStatus == STATUS_DOWN_REFRESH) {
 				// 下拉刷新状态释放，直接回复原样。
 				int end = -mHeaderHeight;
-				smoothMove(false,mHeaderCurrentPadding, end, null);
+				smoothMove(false, mHeaderCurrentPadding, end, null);
 				// 完成后，不在显示刷新界面
 				mIsShowRefresh = false;
 			}
@@ -268,18 +271,21 @@ public class RefreshListView extends ListView implements OnScrollListener {
 	}
 
 	// 利用属性动画实现refresh view的平滑移动
-	private void smoothMove(final boolean  isLoadMore,int start, int end, AnimatorListener listener) {
+	private void smoothMove(final boolean isLoadMore, int start, int end,
+			AnimatorListener listener) {
 		ValueAnimator animator = ValueAnimator.ofInt(start, end);
 		animator.setDuration(300);
 		animator.addUpdateListener(new AnimatorUpdateListener() {
 			@Override
 			public void onAnimationUpdate(ValueAnimator animation) {
-				if(isLoadMore){
-					//加载更多界面修改
-					mFooterLayout.setPadding(0,  (Integer) animation.getAnimatedValue(), 0, 0);
-				}else{
-					//上拉刷新界面修改
-					mHeaderCurrentPadding = (Integer) animation.getAnimatedValue();
+				if (isLoadMore) {
+					// 加载更多界面修改
+					mFooterLayout.setPadding(0,
+							(Integer) animation.getAnimatedValue(), 0, 0);
+				} else {
+					// 上拉刷新界面修改
+					mHeaderCurrentPadding = (Integer) animation
+							.getAnimatedValue();
 					mHeaderLayout.setPadding(0, mHeaderCurrentPadding, 0, 0);
 				}
 			}
@@ -343,27 +349,36 @@ public class RefreshListView extends ListView implements OnScrollListener {
 		setRefreshUi();
 		smoothMove(false, mHeaderCurrentPadding, end, null);
 	}
-	
+
 	// 数据更新完成后，回复界面
-		public void setLoadMoreEnd() {
-			Log.d(TAG, "load界面回复");
-			int end = -mFooterHeight;
-			smoothMove(true,0, end, null);
-		}
+	public void setLoadMoreEnd() {
+		Log.d(TAG, "load界面回复");
+		int end = -mFooterHeight;
+		isLoadMore = false;
+		smoothMove(true, 0, end, null);
+	}
 
 	@Override
 	public void onScrollStateChanged(AbsListView view, int scrollState) {
-		//Log.d(TAG,  "count = "+getAdapter().getCount() +",  getLastVisiblePosition() ="+getLastVisiblePosition());
-		
-		if (scrollState == OnScrollListener.SCROLL_STATE_IDLE
-				&& getLastVisiblePosition() == getAdapter().getCount() -1) {
-			Log.d(TAG, "滑动到底部,加载更多数据！");
-			mFooterLayout.setPadding(0, 0, 0, 0);
-			setSelection(view.getAdapter().getCount());
-			if(mRefreshListener !=null){
-				mRefreshListener.onLoadMore();
+		// Log.d(TAG, "count = "+getAdapter().getCount()
+		// +",  getLastVisiblePosition() ="+getLastVisiblePosition());
+		//正式加载数据时，不响应给事件。
+		if (!isLoadMore) {
+			if (scrollState == OnScrollListener.SCROLL_STATE_IDLE
+					&& getLastVisiblePosition() == getAdapter().getCount() - 1) {
+				Log.d(TAG, "滑动到底部,加载更多数据！");
+				mFooterLayout.setPadding(0, 0, 0, 0);
+				isLoadMore = true;
+				setSelection(view.getAdapter().getCount());
+				if (mRefreshListener != null) {
+					mRefreshListener.onLoadMore();
+				}
 			}
+		}else{
+			Log.d(TAG, "正在加载");
 		}
+		
+	
 	}
 
 	@Override

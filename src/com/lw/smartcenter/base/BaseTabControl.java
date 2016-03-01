@@ -21,6 +21,7 @@ public abstract class BaseTabControl implements OnClickListener {
 	protected ImageView mIb_menu;
 	protected TextView mTv_title;
 	private FrameLayout mTab_containter_content;
+	protected ImageView mPic_list_or_grid;
 
 	public BaseTabControl(Context context) {
 		this.mContext = context;
@@ -37,6 +38,7 @@ public abstract class BaseTabControl implements OnClickListener {
 		View view = View.inflate(context, R.layout.base_tabcontrol, null);
 		mTv_title = (TextView) view.findViewById(R.id.tab_tv_title);
 		mIb_menu = (ImageView) view.findViewById(R.id.tab_ib_menu);
+		mPic_list_or_grid = (ImageView) view.findViewById(R.id.tab_pic_list_or_grid);
 		mTab_containter_content = (FrameLayout) view
 				.findViewById(R.id.tab_containter_content);
 		// 把正文view加入容器
@@ -87,6 +89,13 @@ public abstract class BaseTabControl implements OnClickListener {
 	 * @param position
 	 */
 	public void switchMenu(int position) {
+		
+	}
+	
+	/**
+	 * 消耗时清除内存
+	 */
+	public void onDestroy(){
 		
 	}
 
